@@ -2,24 +2,24 @@ package main
 
 import (
 	"github.com/zzucch/teinen/internal/anki"
-	"github.com/zzucch/teinen/internal/parse"
-	"github.com/zzucch/teinen/internal/read"
-	"github.com/zzucch/teinen/internal/waitlog"
+	"github.com/zzucch/teinen/internal/ui"
 )
 
 func main() {
-	lines, err := read.Read()
-	if err != nil {
-		waitlog.Fatal(err)
-	}
+	//	lines, err := read.Read()
+	//	if err != nil {
+	//		waitlog.Fatal(err)
+	//	}
+	//
+	//	entries := parse.Parse(lines)
+	//
+	//	println("amount: ", len(entries))
 
-  result := parse.Parse(lines)
+	client := anki.Connect()
 
-  for _, res := range result {
-    println("word: "+res.Word)
-    println("meaning: "+res.Meaning)
-    println("info: "+res.Info)
-  }
+	// deckName := "new-deck"
 
-	anki.Run()
+	// anki.CreateDeck(client, deckName)
+	models := anki.GetModels(client)
+	print(ui.Choose(models))
 }
