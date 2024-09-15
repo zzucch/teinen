@@ -3,7 +3,6 @@ package read
 import (
 	"bufio"
 	"fmt"
-	"log"
 	"os"
 	"strings"
 
