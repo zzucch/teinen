@@ -1,6 +1,7 @@
 package anki
 
 import (
+	"log"
 	"strings"
 
 	"github.com/atselvan/ankiconnect"
@@ -37,7 +38,7 @@ func CreateDeck(client *ankiconnect.Client, deckName string) {
 
 	for _, deck := range *decks {
 		if strings.EqualFold(deckName, deck) {
-			waitlog.Fatal("the deck already exists, delete it")
+			waitlog.Println("the deck already exists, delete it")
 		}
 	}
 
@@ -72,14 +73,21 @@ func AddNote(
 	deckName, modelName string,
 	fieldData []FieldData,
 ) {
+	if len(fieldData) != 3 {
+		waitlog.Fatal("invalid fields amount")
+	}
+
 	note := ankiconnect.Note{
 		DeckName:  deckName,
 		ModelName: modelName,
 		Fields: ankiconnect.Fields{
-			"Front": "Front data",
-			"Back":  "Back data",
+			fieldData[0].Field: fieldData[0].Data,
+			fieldData[1].Field: fieldData[1].Data,
+			fieldData[2].Field: fieldData[2].Data,
 		},
 	}
+
+	log.Println(note)
 
 	if restErr := client.Notes.Add(note); restErr != nil {
 		waitlog.Fatal(restErr.Error)

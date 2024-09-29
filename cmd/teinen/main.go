@@ -13,21 +13,15 @@ import (
 )
 
 func main() {
-	// client := anki.Connect()
+	client := anki.Connect()
 
-	// model, modelFields := getModelAndFields(client)
+	model, modelFields := getModelAndFields(client)
 
 	entries := getEntries()
-	for _, entry := range entries {
-		fmt.Printf(
-			"\n\nEntry:\nWord:%s\nMeaning:%s\nInfo:%s",
-			entry.Word,
-			entry.Meaning,
-			entry.Info,
-		)
-	}
 
-	// createAndPopulateDeck(client, model, modelFields, entries)
+	createAndPopulateDeck(client, model, modelFields, entries)
+
+	fmt.Println("done")
 }
 
 func getModelAndFields(client *ankiconnect.Client) (string, []anki.ModelField) {
@@ -93,6 +87,8 @@ func createAndPopulateDeck(
 
 	anki.CreateDeck(client, deckName)
 
+	fmt.Println("inserting...")
+
 	for _, entry := range entries {
 		fieldData := []anki.FieldData{
 			{
@@ -108,6 +104,7 @@ func createAndPopulateDeck(
 				Data:  entry.Info,
 			},
 		}
+
 		anki.AddNote(client, deckName, model, fieldData)
 	}
 }
