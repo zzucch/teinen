@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/atselvan/ankiconnect"
 	"github.com/zzucch/teinen/internal/anki"
@@ -12,13 +13,21 @@ import (
 )
 
 func main() {
-	client := anki.Connect()
+	// client := anki.Connect()
 
-	model, modelFields := getModelAndFields(client)
+	// model, modelFields := getModelAndFields(client)
 
 	entries := getEntries()
+	for _, entry := range entries {
+		fmt.Printf(
+			"\n\nEntry:\nWord:%s\nMeaning:%s\nInfo:%s",
+			entry.Word,
+			entry.Meaning,
+			entry.Info,
+		)
+	}
 
-	createAndPopulateDeck(client, model, modelFields, entries)
+	// createAndPopulateDeck(client, model, modelFields, entries)
 }
 
 func getModelAndFields(client *ankiconnect.Client) (string, []anki.ModelField) {
@@ -66,7 +75,10 @@ func readAndParse() []parse.Entry {
 		waitlog.Fatal(err)
 	}
 
-	entries := parse.Parse(lines)
+	entries, err := parse.Parse(strings.Join(lines, "\n"))
+	if err != nil {
+		waitlog.Fatal(err)
+	}
 
 	return entries
 }
@@ -77,7 +89,7 @@ func createAndPopulateDeck(
 	modelFields []anki.ModelField,
 	entries []parse.Entry,
 ) {
-	const deckName = "new-deck"
+	const deckName = "teinen"
 
 	anki.CreateDeck(client, deckName)
 

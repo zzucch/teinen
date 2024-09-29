@@ -1,8 +1,8 @@
 package parse
 
 import (
-	"strconv"
-	"strings"
+	"errors"
+	"unicode"
 )
 
 type Entry struct {
@@ -11,59 +11,144 @@ type Entry struct {
 	Info    string
 }
 
-func Parse(lines []string) []Entry {
+func Parse(data string) ([]Entry, error) {
 	entries := make([]Entry, 0)
+	dataRunes := []rune(data)
 
-	var (
-		currentEntry     Entry
-		parsingInfo      bool
-		foundFirstNumber bool
-	)
-
-	for _, line := range lines {
-		line = strings.TrimSpace(line)
-
-		if !foundFirstNumber {
-			if _, err := strconv.Atoi(line); err == nil {
-				foundFirstNumber = true
-			}
-
+	for currentLocation := 0; currentLocation < len(dataRunes); {
+		if !unicode.IsDigit(dataRunes[currentLocation]) {
+			currentLocation++
 			continue
 		}
 
-		if line == "" {
-			continue
+		entry, err := parseEntry(dataRunes, &currentLocation)
+		if err != nil {
+			return nil, err
 		}
 
-		if _, err := strconv.Atoi(line); err == nil {
-			if parsingInfo && currentEntry.Word != "" {
-				entries = append(entries, currentEntry)
-				currentEntry = Entry{}
-				parsingInfo = false
-			}
-
-			continue
-		}
-
-		if !parsingInfo {
-			if currentEntry.Word == "" {
-				currentEntry.Word = line
-			} else if currentEntry.Meaning == "" {
-				currentEntry.Meaning = line
-				parsingInfo = true
-			}
-		} else {
-			if currentEntry.Info == "" {
-				currentEntry.Info = line
-			} else {
-				currentEntry.Info += "\n" + line
-			}
-		}
+		entries = append(entries, entry)
 	}
 
-	if currentEntry.Word != "" {
-		entries = append(entries, currentEntry)
+	return entries, nil
+}
+
+func parseEntry(data []rune, currentLocation *int) (Entry, error) {
+	_, err := parseNumber(data, currentLocation)
+	if err != nil {
+		return Entry{}, err
 	}
 
-	return entries
+	word, err := parseWord(data, currentLocation)
+	if err != nil {
+		return Entry{}, err
+	}
+
+	meaning, err := parseMeaning(data, currentLocation)
+	if err != nil {
+		return Entry{}, err
+	}
+
+	info, err := parseInfo(data, currentLocation)
+	if err != nil {
+		return Entry{}, err
+	}
+
+	return Entry{
+		Word:    word,
+		Meaning: meaning,
+		Info:    info,
+	}, nil
+}
+
+func parseNumber(data []rune, currentLocation *int) (string, error) {
+	start := *currentLocation
+	for *currentLocation < len(data) &&
+		unicode.IsDigit(data[*currentLocation]) {
+		*currentLocation++
+	}
+
+	for *currentLocation < len(data) &&
+		unicode.IsSpace(data[*currentLocation]) {
+		*currentLocation++
+	}
+
+	if start == *currentLocation {
+		return "", errors.New("expected number")
+	}
+
+	return string(data[start:*currentLocation]), nil
+}
+
+func parseWord(data []rune, currentLocation *int) (string, error) {
+	start := *currentLocation
+
+	insideBrackets := false
+	for *currentLocation < len(data) {
+		r := data[*currentLocation]
+
+		if r == '（' {
+			insideBrackets = true
+			*currentLocation++
+			continue
+		}
+
+		if r == '）' {
+			insideBrackets = false
+			*currentLocation++
+			continue
+		}
+
+		if !insideBrackets && (unicode.IsSpace(r)) {
+			break
+		}
+
+		*currentLocation++
+	}
+
+	if start == *currentLocation {
+		return "", errors.New("expected word")
+	}
+
+	word := data[start:*currentLocation]
+
+	for *currentLocation < len(data) &&
+		unicode.IsSpace(data[*currentLocation]) {
+		*currentLocation++
+	}
+
+	return string(word), nil
+}
+
+func parseMeaning(data []rune, currentLocation *int) (string, error) {
+	start := *currentLocation
+
+	for *currentLocation < len(data) &&
+		data[*currentLocation] != '\n' {
+		*currentLocation++
+	}
+
+	if start == *currentLocation {
+		return "", errors.New("expected meaning")
+	}
+
+	*currentLocation++
+
+	return string(data[start:*currentLocation]), nil
+}
+
+func parseInfo(data []rune, currentLocation *int) (string, error) {
+	start := *currentLocation
+
+	for *currentLocation < len(data) {
+		r := data[*currentLocation]
+
+		if unicode.IsDigit(r) &&
+			(start == 0 || data[*currentLocation-1] == '\n') {
+			break
+		}
+
+		*currentLocation++
+	}
+
+	return string(data[start:*currentLocation]), nil
 }
