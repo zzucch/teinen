@@ -1,7 +1,6 @@
 package anki
 
 import (
-	"log"
 	"strings"
 
 	"github.com/atselvan/ankiconnect"
@@ -87,9 +86,21 @@ func AddNote(
 		},
 	}
 
-	log.Println(note)
-
 	if restErr := client.Notes.Add(note); restErr != nil {
 		waitlog.Fatal(restErr.Error)
 	}
+}
+
+func GetField(
+	modelFields []ModelField,
+	fieldType FieldType,
+) *ModelField {
+	for _, field := range modelFields {
+		if field.FieldType == fieldType {
+			return &field
+		}
+	}
+
+	waitlog.Fatal("failed to get field")
+	return nil // never happends
 }

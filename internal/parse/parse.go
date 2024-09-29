@@ -109,7 +109,7 @@ func parseWord(data []rune, currentLocation *int) (string, error) {
 		return "", errors.New("expected word")
 	}
 
-	word := data[start:*currentLocation]
+	word := bracketsToAnkiFurigana(data[start:*currentLocation])
 
 	for *currentLocation < len(data) &&
 		unicode.IsSpace(data[*currentLocation]) {
@@ -151,4 +151,18 @@ func parseInfo(data []rune, currentLocation *int) (string, error) {
 	}
 
 	return string(data[start:*currentLocation]), nil
+}
+
+func bracketsToAnkiFurigana(data []rune) []rune {
+	for i := range data {
+		if data[i] == '（' || data[i] == '(' {
+			data[i] = '['
+		}
+
+		if data[i] == '）' || data[i] == ')' {
+			data[i] = ']'
+		}
+	}
+
+	return data
 }
