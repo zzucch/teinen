@@ -10,8 +10,8 @@ import (
 	"github.com/zzucch/teinen/internal/waitlog"
 )
 
-func Choose(options *[]string) string {
-	fmt.Println("options:")
+func Choose(choosing string, options *[]string) string {
+	fmt.Println(choosing + " options:")
 	for i, option := range *options {
 		fmt.Println(strconv.Itoa(i+1) + ": " + option)
 	}

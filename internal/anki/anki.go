@@ -7,6 +7,24 @@ import (
 	"github.com/zzucch/teinen/internal/waitlog"
 )
 
+type FieldType int
+
+const (
+	Word FieldType = iota
+	Meaning
+	Info
+)
+
+type FieldData struct {
+	Field string
+	Data  string
+}
+
+type ModelField struct {
+	FieldType
+	Name string
+}
+
 func Connect() *ankiconnect.Client {
 	return ankiconnect.NewClient()
 }
@@ -37,7 +55,10 @@ func GetModels(client *ankiconnect.Client) *[]string {
 	return models
 }
 
-func GetModelFields(client *ankiconnect.Client, modelName string) *[]string {
+func GetModelFields(
+	client *ankiconnect.Client,
+	modelName string,
+) *[]string {
 	fields, restErr := client.Models.GetFields(modelName)
 	if restErr != nil {
 		waitlog.Fatal(restErr)
@@ -49,6 +70,7 @@ func GetModelFields(client *ankiconnect.Client, modelName string) *[]string {
 func AddNote(
 	client *ankiconnect.Client,
 	deckName, modelName string,
+	fieldData []FieldData,
 ) {
 	note := ankiconnect.Note{
 		DeckName:  deckName,
